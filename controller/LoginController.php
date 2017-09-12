@@ -14,7 +14,6 @@ class LoginController {
     public function handleLoginRequest() {
         if ($_POST) {
             $this->checkIfProvidedUsername();
-            //var_dump($_POST);
         }
     }
 
@@ -25,7 +24,6 @@ class LoginController {
     private function checkIfProvidedUsername() {
         if ($_REQUEST[self::$providedUsername]) {
             $this->checkIfProvidedPassword();
-            //echo 'hej';
         } else {
             $this->message = 'Username is missing';
         }
@@ -33,9 +31,27 @@ class LoginController {
 
     private function checkIfProvidedPassword() {
         if ($_REQUEST[self::$providedPassword]) {
-            echo 'password hej';
+            $this->checkIfCorrectUsername();
         } else {
             $this->message = 'Password is missing';
+        }
+    }
+
+    //TODO: Change from hardcoded if-statement to looking for the username in database.
+    private function checkIfCorrectUsername() {
+        if ($_REQUEST[self::$providedUsername] == 'Admin') {
+            $this->checkIfCorrectPassword();
+        } else {
+            $this->message = 'Wrong name or password';
+        }
+    }
+
+    //TODO: Change from hardcoded if-statement to looking for the password in database.
+    private function checkIfCorrectPassword() {
+        if ($_REQUEST[self::$providedPassword] == 'Password') {
+            echo 'Korrekt password';
+        } else {
+            $this->message = 'Wrong name or password';
         }
     }
 }
