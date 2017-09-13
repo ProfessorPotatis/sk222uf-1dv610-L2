@@ -2,7 +2,6 @@
 session_start();
 
 //INCLUDE THE FILES NEEDED...
-include('DBConfig.php');
 require_once('view/LoginView.php');
 require_once('view/DateTimeView.php');
 require_once('view/LayoutView.php');
@@ -17,10 +16,5 @@ ini_set('display_errors', 'On');
 $v = new LoginView();
 $dtv = new DateTimeView();
 $lv = new LayoutView();
-
-//CREATE DATABASE
-$db = new Database($db_host, $db_name, $db_user, $db_password);
-//$db->addUser('Admin', 'Password');
-
 
 $lv->render(false, $v, $dtv);
