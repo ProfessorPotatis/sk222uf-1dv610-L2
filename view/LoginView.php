@@ -23,10 +23,10 @@ class LoginView {
 	 */
 	public function response() {
 		$loginController = new LoginController();
-		$loginController->handleLoginRequest();
+		$isAuthenticated = $loginController->handleLoginRequest();
 		$message = $loginController->getMessage();
 
-		if ($message == 'Welcome') {
+		if ($isAuthenticated) {
 			$response = $this->generateLogoutButtonHTML($message);
 		} else {
 			$response = $this->generateLoginFormHTML($message);

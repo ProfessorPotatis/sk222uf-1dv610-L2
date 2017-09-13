@@ -7,6 +7,7 @@ class LoginController {
 
     private $message = '';
     private $db;
+    private $isAuthenticated;
     
     public function __construct() {
         // ON PRODUCTION SERVER -> REMOVE SK222UF-1DV610-L2.
@@ -18,6 +19,7 @@ class LoginController {
     public function handleLoginRequest() {
         if ($_POST) {
             $this->validateInputFields();
+            return $this->isAuthenticated;
         }
     }
 
@@ -36,24 +38,12 @@ class LoginController {
     }
 
     private function authenticateUser() {
-        $this->db->authenticate($_REQUEST[self::$providedUsername], $_REQUEST[self::$providedPassword]);
-    }
-
-    //TODO: Change from hardcoded if-statement to looking for the username in database.
-    /*private function checkIfCorrectUsername() {
-        if ($_REQUEST[self::$providedUsername] == 'Admin') {
-            return $this->checkIfCorrectPassword();
-        } else {
-            $this->message = 'Wrong name or password';
-        }
-    }
-
-    //TODO: Change from hardcoded if-statement to looking for the password in database.
-    private function checkIfCorrectPassword() {
-        if ($_REQUEST[self::$providedPassword] == 'Password') {
+        $this->isAuthenticated = $this->db->authenticate($_REQUEST[self::$providedUsername], $_REQUEST[self::$providedPassword]);
+        
+        if ($this->isAuthenticated) {
             $this->message = 'Welcome';
         } else {
             $this->message = 'Wrong name or password';
         }
-    }*/
+    }
 }

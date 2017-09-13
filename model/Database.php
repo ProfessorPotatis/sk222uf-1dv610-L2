@@ -3,22 +3,20 @@
 class Database {
 
     private $db_host;
-    private $db_username;
+    private $db_user;
     private $db_password;
     private $db_name;
     private $connection;
 
-    public function __construct($db_host, $db_username, $db_password, $db_name) {
+    public function __construct($db_host, $db_user, $db_password, $db_name) {
         $this->db_host = $db_host;
-        $this->db_username = $db_username;
+        $this->db_user = $db_user;
         $this->db_password = $db_password;
         $this->db_name = $db_name;
-
-        //$this->connectToDatabase();
     }
 
     private function connectToDatabase() {
-        $this->connection = mysqli_connect($this->db_host, $this->db_username, $this->db_password, $this->db_name);
+        $this->connection = mysqli_connect($this->db_host, $this->db_user, $this->db_password, $this->db_name);
 
         $this->checkConnection();
     }
@@ -65,8 +63,7 @@ class Database {
             
             /* fetch value */
             while (mysqli_stmt_fetch($stmt)) {
-                $this->verifyPassword($password, $dbPassword);
-                printf("%s %s\n", $dbUsername, $dbPassword);
+                $passwordIsValid = $this->verifyPassword($password, $dbPassword);
             }
             
             /* close statement */
@@ -74,13 +71,14 @@ class Database {
         }
 
         $this->disconnect();
+        return $passwordIsValid;
     }
 
     private function verifyPassword($password, $dbPassword) {
         if (password_verify($password, $dbPassword)) {
-            echo 'Password is valid!';
+            return true;
         } else {
-            echo 'Invalid password.';
+            return false;
         }
     }
 }
