@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 class LoginView {
 	private static $login = 'LoginView::Login';
@@ -11,8 +12,7 @@ class LoginView {
 	private static $messageId = 'LoginView::Message';
 
 	private $username;
-
-	
+	private $session;
 
 	/**
 	 * Create HTTP response
@@ -22,11 +22,13 @@ class LoginView {
 	 * @return  void BUT writes to standard output and cookies!
 	 */
 	public function response() {
+		$this->session = new Session();
+
 		$loginController = new LoginController();
-		$isAuthenticated = $loginController->handleLoginRequest();
+		$loginController->handleUserRequest();
 		$message = $loginController->getMessage();
 
-		if ($isAuthenticated) {
+		if ($this->session->isLoggedIn()) {
 			$response = $this->generateLogoutButtonHTML($message);
 		} else {
 			$response = $this->generateLoginFormHTML($message);
@@ -55,7 +57,7 @@ class LoginView {
 	*/
 	private function generateLoginFormHTML($message) {
 
-		if ($_POST) {
+		if (isset($_POST[self::$login])) {
 			$this->username = $this->getRequestUserName();
 		}
 

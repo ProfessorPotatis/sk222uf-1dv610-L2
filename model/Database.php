@@ -7,6 +7,7 @@ class Database {
     private $db_password;
     private $db_name;
     private $connection;
+    private $passwordIsValid = false;
 
     public function __construct($db_host, $db_user, $db_password, $db_name) {
         $this->db_host = $db_host;
@@ -53,7 +54,8 @@ class Database {
     public function authenticate($username, $password) {
         $this->connectToDatabase();
 
-        $query = "SELECT * FROM `Users` WHERE username='" . $username . "'";
+        // BINARY makes it case sensitive.
+        $query = "SELECT * FROM `Users` WHERE BINARY username='" . $username . "'";
 
         if ($stmt = mysqli_prepare($this->connection, $query)) {
             mysqli_stmt_execute($stmt);
@@ -63,7 +65,7 @@ class Database {
             
             /* fetch value */
             while (mysqli_stmt_fetch($stmt)) {
-                $passwordIsValid = $this->verifyPassword($password, $dbPassword);
+                $this->passwordIsValid = $this->verifyPassword($password, $dbPassword);
             }
             
             /* close statement */
@@ -71,7 +73,7 @@ class Database {
         }
 
         $this->disconnect();
-        return $passwordIsValid;
+        return $this->passwordIsValid;
     }
 
     private function verifyPassword($password, $dbPassword) {
