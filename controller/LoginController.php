@@ -24,6 +24,7 @@ class LoginController {
     public function handleUserRequest() {
         if ($_POST) {
             $this->handleLoginRequest();
+            $this->redirectToSelf();
         } else if (isset($_SESSION['message'])) {
             $this->message = $this->session->getSessionVariable('message');
             $this->session->unsetSessionVariable('message');
@@ -40,12 +41,12 @@ class LoginController {
     private function handleLoginRequest() {
         if (isset($_POST[self::$logout])) {
             $this->logout();
-        } else if (isset($_POST[self::$login])) {
+        } else if (isset($_POST[self::$login]) && $this->session->isLoggedIn() == false) {
             $this->validateInputFields();
         } else {
             $this->message = '';
         }
-        $this->redirectToSelf();
+        //$this->redirectToSelf();
     }
 
     public function getMessage() {
