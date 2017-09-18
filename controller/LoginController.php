@@ -11,6 +11,7 @@ class LoginController {
     private $db;
     private $isAuthenticated = false;
     private $session;
+    private $username;
     
     public function __construct() {
         // ON PRODUCTION SERVER -> REMOVE SK222UF-1DV610-L2.
@@ -26,6 +27,11 @@ class LoginController {
         } else if (isset($_SESSION['message'])) {
             $this->message = $this->session->getSessionVariable('message');
             $this->session->unsetSessionVariable('message');
+
+            if (isset($_SESSION['username'])) {
+                $this->username = $this->session->getSessionVariable('username');
+                $this->session->unsetSessionVariable('username');
+            }
         } else {
             $this->message = '';
         }
@@ -36,18 +42,26 @@ class LoginController {
             $this->logout();
         } else if (isset($_POST[self::$login])) {
             $this->validateInputFields();
+        } else {
+            $this->message = '';
         }
+        $this->redirectToSelf();
     }
 
     public function getMessage() {
         return $this->message;
     }
 
+    public function getUsername() {
+        return $this->username;
+    }
+
     private function validateInputFields() {
         if ($_REQUEST[self::$providedUsername] == '') {
-            $this->message = 'Username is missing';
+            $this->session->setSessionVariable('message', 'Username is missing');
         } else if ($_REQUEST[self::$providedPassword] == '') {
-            $this->message = 'Password is missing';
+            $this->session->setSessionVariable('username', $_REQUEST[self::$providedUsername]);
+            $this->session->setSessionVariable('message', 'Password is missing');
         } else {
             $this->authenticateUser();
         }
@@ -59,18 +73,18 @@ class LoginController {
         if ($this->isAuthenticated) {
             $this->session->setSessionVariable('loggedIn', true);
             $this->session->setSessionVariable('message', 'Welcome');
-
-            $this->redirectToSelf();
         } else {
-            $this->message = 'Wrong name or password';
+            $this->session->setSessionVariable('username', $_REQUEST[self::$providedUsername]);
+            $this->session->setSessionVariable('message', 'Wrong name or password');
         }
     }
 
     private function logout() {
         if ($this->session->isLoggedIn()) {
             $this->session->unsetSessionVariable('loggedIn');
-
-            $this->redirectToSelf();
+            $this->session->setSessionVariable('message', 'Bye bye!');
+        } else {
+            $this->message = '';
         }
     }
 
