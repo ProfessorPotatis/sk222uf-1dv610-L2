@@ -6,6 +6,9 @@ class LoginController {
     private static $providedPassword = 'LoginView::Password';
     private static $logout = 'LoginView::Logout';
     private static $login = 'LoginView::Login';
+    private static $keep = 'LoginView::KeepMeLoggedIn';
+    private static $cookieName = 'LoginView::CookieName';
+	private static $cookiePassword = 'LoginView::CookiePassword';
 
     private $message = '';
     private $db;
@@ -46,7 +49,6 @@ class LoginController {
         } else {
             $this->message = '';
         }
-        //$this->redirectToSelf();
     }
 
     public function getMessage() {
@@ -74,6 +76,8 @@ class LoginController {
         if ($this->isAuthenticated) {
             $this->session->setSessionVariable('loggedIn', true);
             $this->session->setSessionVariable('message', 'Welcome');
+            
+            $this->keepLoggedIn();
         } else {
             $this->session->setSessionVariable('username', $_REQUEST[self::$providedUsername]);
             $this->session->setSessionVariable('message', 'Wrong name or password');
@@ -82,6 +86,7 @@ class LoginController {
 
     private function logout() {
         if ($this->session->isLoggedIn()) {
+            $this->clearCookies();
             $this->session->unsetSessionVariable('loggedIn');
             $this->session->setSessionVariable('message', 'Bye bye!');
         } else {
@@ -91,5 +96,30 @@ class LoginController {
 
     private function redirectToSelf() {
         header('Location: ' . $_SERVER['PHP_SELF']);
+    }
+
+    private function keepLoggedIn() {
+        if (isset($_POST[self::$keep])) {
+            $this->session->setSessionVariable('message', 'Welcome and you will be remembered');
+            $this->setCookies();
+        }
+    }
+
+    private function setCookies() {
+        $randomStr = uniqid();
+        setcookie(self::$cookieName, $_REQUEST[self::$providedUsername], time() + (86400 * 30), '/');
+        setcookie(self::$cookiePassword, $randomStr, time() + (86400 * 30), '/');
+    }
+
+    private function clearCookies() {
+        if (isset($_COOKIE[self::$cookieName])) {
+            unset($_COOKIE[self::$cookieName]);
+            setcookie(self::$cookieName, '', time() - 3600, '/'); // empty value and old timestamp, to delete cookie
+        }
+
+        if (isset($_COOKIE[self::$cookiePassword])) {
+            unset($_COOKIE[self::$cookiePassword]);
+            setcookie(self::$cookiePassword, '', time() - 3600, '/'); // empty value and old timestamp, to delete cookie
+        }
     }
 }
