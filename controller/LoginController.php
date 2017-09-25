@@ -36,6 +36,9 @@ class LoginController {
                 $this->username = $this->session->getSessionVariable('username');
                 $this->session->unsetSessionVariable('username');
             }
+        } else if (isset($_COOKIE[self::$cookiePassword]) && !$this->session->isLoggedIn()) {
+            $this->session->setSessionVariable('message', 'Welcome back with cookie');
+            $this->message = $this->session->getSessionVariable('message');
         } else {
             $this->message = '';
         }

@@ -2,6 +2,7 @@
 
 class Session {
     private static $loggedIn = 'loggedIn';
+    private static $cookiePassword = 'LoginView::CookiePassword';
     
     public function __construct() {
         $this->startSession();

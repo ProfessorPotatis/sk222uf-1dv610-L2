@@ -31,6 +31,8 @@ class LoginView {
 
 		if ($this->session->isLoggedIn()) {
 			$response = $this->generateLogoutButtonHTML($message);
+		} else if (isset($_COOKIE[self::$cookiePassword]) && !empty($_COOKIE[self::$cookiePassword])) {
+			$response = $this->generateLogoutButtonHTML($message);
 		} else {
 			$response = $this->generateLoginFormHTML($message);
 		}

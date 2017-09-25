@@ -20,7 +20,9 @@ class RouteController {
 
         if ($this->session->isLoggedIn()) {
             $isLoggedIn = true;
-        } else {
+        } else if (isset($_COOKIE['LoginView::CookiePassword']) && !empty($_COOKIE['LoginView::CookiePassword'])) {
+			$isLoggedIn = true;
+		} else {
             $isLoggedIn = false;
         }
 
