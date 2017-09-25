@@ -8,6 +8,7 @@ class Database {
     private $db_name;
     private $connection;
     private $passwordIsValid = false;
+    private $cookieIsValid = false;
 
     public function __construct($db_host, $db_user, $db_password, $db_name) {
         $this->db_host = $db_host;
@@ -55,13 +56,13 @@ class Database {
         $this->connectToDatabase();
 
         // BINARY makes it case sensitive.
-        $query = "SELECT * FROM `Users` WHERE BINARY username='" . $username . "'";
+        $query = "SELECT * FROM Users WHERE BINARY username='" . $username . "'";
 
         if ($stmt = mysqli_prepare($this->connection, $query)) {
             mysqli_stmt_execute($stmt);
             
             /* bind result variables */
-            mysqli_stmt_bind_result($stmt, $dbUsername, $dbPassword);
+            mysqli_stmt_bind_result($stmt, $dbUsername, $dbPassword, $dbCookiePassword);
             
             /* fetch value */
             while (mysqli_stmt_fetch($stmt)) {
@@ -78,6 +79,55 @@ class Database {
 
     private function verifyPassword($password, $dbPassword) {
         if (password_verify($password, $dbPassword)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function saveUserCookie($username, $cookiePassword) {
+        $this->connectToDatabase();
+        
+        $encryptedCookiePassword = password_hash($cookiePassword, PASSWORD_DEFAULT);
+
+        $sql = "UPDATE Users SET cookie='" . $encryptedCookiePassword . "' WHERE BINARY username='" . $username . "'";
+                
+        if (mysqli_query($this->connection, $sql)) {
+            //echo 'New cookie record created successfully';
+        } else {
+            echo 'Error: ' . $sql . '<br>' . mysqli_error($this->connection);
+        }
+        
+        $this->disconnect();
+    }
+
+    public function verifyCookie($inputUsername, $inputCookie) {
+        $this->connectToDatabase();
+        
+        // BINARY makes it case sensitive.
+        $query = "SELECT * FROM Users WHERE BINARY username='" . $inputUsername . "'";
+        
+        if ($stmt = mysqli_prepare($this->connection, $query)) {
+            mysqli_stmt_execute($stmt);
+            
+            /* bind result variables */
+            mysqli_stmt_bind_result($stmt, $dbUsername, $dbPassword, $dbCookiePassword);
+            
+            /* fetch value */
+            while (mysqli_stmt_fetch($stmt)) {
+                $this->cookieIsValid = $this->verifyTheCookie($inputCookie, $dbCookiePassword);
+            }
+            
+            /* close statement */
+            mysqli_stmt_close($stmt);
+        }
+
+        $this->disconnect();
+        return $this->cookieIsValid;
+    }
+
+    private function verifyTheCookie($inputCookie, $dbCookiePassword) {
+        if (password_verify($inputCookie, $dbCookiePassword)) {
             return true;
         } else {
             return false;

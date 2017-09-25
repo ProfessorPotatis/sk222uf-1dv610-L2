@@ -10,8 +10,14 @@ class Session {
 
     public function startSession() {
         if (session_status() == PHP_SESSION_NONE) {
+            ini_set('session.use_only_cookies', true);				
+            ini_set('session.use_trans_sid', false);
             session_start();
         }
+    }
+
+    public function regenerateSessionId() {
+        session_regenerate_id();
     }
 
     public function setSessionVariable($name, $value) {

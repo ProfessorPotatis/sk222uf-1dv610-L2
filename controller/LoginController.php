@@ -37,8 +37,17 @@ class LoginController {
                 $this->session->unsetSessionVariable('username');
             }
         } else if (isset($_COOKIE[self::$cookiePassword]) && !$this->session->isLoggedIn()) {
-            $this->session->setSessionVariable('message', 'Welcome back with cookie');
-            $this->message = $this->session->getSessionVariable('message');
+            if ($this->db->verifyCookie($_COOKIE[self::$cookieName], $_COOKIE[self::$cookiePassword])) {
+                $this->session->setSessionVariable('message', 'Welcome back with cookie');
+                $this->session->setSessionVariable('loggedIn', true);
+                $this->message = $this->session->getSessionVariable('message');
+                $this->session->unsetSessionVariable('message');
+            } else {
+                $this->session->setSessionVariable('message', 'Wrong information in cookies');
+                $this->session->unsetSessionVariable('loggedIn');
+                $this->clearCookies();
+                $this->redirectToSelf();
+            }
         } else {
             $this->message = '';
         }
@@ -77,6 +86,8 @@ class LoginController {
         $this->isAuthenticated = $this->db->authenticate($_REQUEST[self::$providedUsername], $_REQUEST[self::$providedPassword]);
 
         if ($this->isAuthenticated) {
+            $this->session->regenerateSessionId();
+            $this->session->setSessionVariable('user_agent', $_SERVER['HTTP_USER_AGENT']);
             $this->session->setSessionVariable('loggedIn', true);
             $this->session->setSessionVariable('message', 'Welcome');
             
@@ -112,6 +123,12 @@ class LoginController {
         $randomStr = uniqid();
         setcookie(self::$cookieName, $_REQUEST[self::$providedUsername], time() + (86400 * 30), '/');
         setcookie(self::$cookiePassword, $randomStr, time() + (86400 * 30), '/');
+
+        $this->saveCookiesToDatabase($randomStr);
+    }
+
+    private function saveCookiesToDatabase($randomStr) {
+        $this->db->saveUserCookie($_REQUEST[self::$providedUsername], $randomStr);
     }
 
     private function clearCookies() {
