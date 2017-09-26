@@ -26,6 +26,9 @@ class FormValidator {
         } else if ($_REQUEST[self::$repeatPassword] !== $_REQUEST[self::$registerPassword]) {
             $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
             $this->session->setSessionVariable('message', 'Passwords do not match.');
+        } else if (strip_tags($_REQUEST[self::$registerName]) !== $_REQUEST[self::$registerName]) {
+            $this->session->setSessionVariable('username', strip_tags($_REQUEST[self::$registerName]));
+            $this->session->setSessionVariable('message', 'Username contains invalid characters.');
         } else {
             return true;
         }

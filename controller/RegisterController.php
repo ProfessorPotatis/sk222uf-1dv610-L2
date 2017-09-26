@@ -26,8 +26,12 @@ class RegisterController {
 
     public function handleUserRequest() {
         if ($_POST) {
-            $this->handleRegisterRequest();
-            $this->redirectToSelf();
+            $successfullyRegistered = $this->handleRegisterRequest();
+            if ($successfullyRegistered) {
+                $this->redirectToLogin();
+            } else {
+                $this->redirectToSelf();
+            }
         } else if (isset($_SESSION['message'])) {
             $this->message = $this->session->getSessionVariable('message');
             $this->session->unsetSessionVariable('message');
@@ -44,12 +48,18 @@ class RegisterController {
     private function handleRegisterRequest() {
         if (isset($_POST[self::$register])) {
             $inputIsValid = $this->validator->validateInputFields();
-            $newUsername = $_REQUEST[self::$registerName];
-            $newPassword = $_REQUEST[self::$registerPassword];
-            $userExist = $this->db->checkIfUserExist($newUsername);
+
             if ($inputIsValid) {
+                $newUsername = $_REQUEST[self::$registerName];
+                $newPassword = $_REQUEST[self::$registerPassword];
+
+                $userExist = $this->db->checkIfUserExist($newUsername);
+
                 if ($userExist == false) {
                     $this->db->addUser($newUsername, $newPassword);
+                    $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
+                    return true;
+                    //$this->redirectToLogin();
                 } else {
                     $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
                     $this->session->setSessionVariable('message', 'User exists, pick another username.');
@@ -58,6 +68,7 @@ class RegisterController {
         } else {
             $this->message = '';
         }
+        return false;
     }
 
     public function getMessage() {
@@ -68,39 +79,11 @@ class RegisterController {
         return $this->username;
     }
 
-    //TODO: FORMVALIDATOR.
-    /*private function validateInputFields() {
-        if (strlen($_REQUEST[self::$registerName]) < 3 && strlen($_REQUEST[self::$registerPassword]) < 6) {
-            $this->session->setSessionVariable('message', 'Username has too few characters, at least 3 characters. Password has too few characters, at least 6 characters.');
-        } else if (strlen($_REQUEST[self::$registerName]) < 3) {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
-            $this->session->setSessionVariable('message', 'Username has too few characters, at least 3 characters.');
-        } else if (strlen($_REQUEST[self::$registerPassword]) < 6) {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
-            $this->session->setSessionVariable('message', 'Password has too few characters, at least 6 characters.');
-        } else if ($_REQUEST[self::$repeatPassword] !== $_REQUEST[self::$registerPassword]) {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
-            $this->session->setSessionVariable('message', 'Passwords do not match.');
-        }
-    }*/
-
-    private function authenticateUser() {
-        $this->isAuthenticated = $this->db->authenticate($_REQUEST[self::$registerName], $_REQUEST[self::$registerPassword]);
-
-        if ($this->isAuthenticated) {
-            $this->session->regenerateSessionId();
-            $this->session->setSessionVariable('user_agent', $_SERVER['HTTP_USER_AGENT']);
-            $this->session->setSessionVariable('loggedIn', true);
-            $this->session->setSessionVariable('message', 'Welcome');
-            
-            $this->keepLoggedIn();
-        } else {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
-            $this->session->setSessionVariable('message', 'Wrong name or password');
-        }
-    }
-
     private function redirectToSelf() {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?register');
+    }
+
+    private function redirectToLogin() {
+        header('Location: ' . $_SERVER['PHP_SELF']);
     }
 }
