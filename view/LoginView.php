@@ -14,6 +14,7 @@ class LoginView {
 	private $username;
 	private $session;
 	private $loginController;
+	private $registerController;
 
 	/**
 	 * Create HTTP response
@@ -28,6 +29,8 @@ class LoginView {
 		$this->loginController = new LoginController();
 		$this->loginController->handleUserRequest();
 		$message = $this->loginController->getMessage();
+
+		$this->registerController = new RegisterController();
 
 		if ($this->session->isLoggedIn()) {
 			$response = $this->generateLogoutButtonHTML($message);
@@ -85,7 +88,17 @@ class LoginView {
 	
 	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
 	private function getRequestUserName() {
-		$providedUsername = $this->loginController->getUsername();
-		return $providedUsername;
+		$username;
+
+		if (!empty($this->loginController->getUsername())) {
+			$username = $this->loginController->getUsername();
+		} else if (!empty($_SESSION['username'])) {
+			$username = $this->session->getSessionVariable('username');
+			$this->session->unsetSessionVariable('username');
+		} else {
+			$username = '';
+		}
+
+		return $username;
 	}
 }

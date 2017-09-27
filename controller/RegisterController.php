@@ -17,7 +17,7 @@ class RegisterController {
     
     public function __construct() {
         // ON PRODUCTION SERVER -> REMOVE SK222UF-1DV610-L2.
-        require_once($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
+        require($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
 
         $this->db = new Database($db_host, $db_user, $db_password, $db_name);
         $this->session = new Session();
@@ -28,6 +28,7 @@ class RegisterController {
         if ($_POST) {
             $successfullyRegistered = $this->handleRegisterRequest();
             if ($successfullyRegistered) {
+                $this->username = $this->session->getSessionVariable('username');
                 $this->redirectToLogin();
             } else {
                 $this->redirectToSelf();
@@ -58,8 +59,8 @@ class RegisterController {
                 if ($userExist == false) {
                     $this->db->addUser($newUsername, $newPassword);
                     $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
+                    $this->session->setSessionVariable('message', 'Registered new user.');
                     return true;
-                    //$this->redirectToLogin();
                 } else {
                     $this->session->setSessionVariable('username', $_REQUEST[self::$registerName]);
                     $this->session->setSessionVariable('message', 'User exists, pick another username.');

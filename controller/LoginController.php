@@ -18,7 +18,7 @@ class LoginController {
     
     public function __construct() {
         // ON PRODUCTION SERVER -> REMOVE SK222UF-1DV610-L2.
-        require_once($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
+        require($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
 
         $this->db = new Database($db_host, $db_user, $db_password, $db_name);
         $this->session = new Session();
@@ -57,6 +57,8 @@ class LoginController {
         if (isset($_POST[self::$logout])) {
             $this->logout();
         } else if (isset($_POST[self::$login]) && $this->session->isLoggedIn() == false) {
+            $this->session->setSessionVariable('username', $_POST[self::$providedUsername]);
+            $this->username = $this->session->getSessionVariable('username');
             $this->validateInputFields();
         } else {
             $this->message = '';

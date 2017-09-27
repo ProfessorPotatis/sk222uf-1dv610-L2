@@ -23,7 +23,6 @@ class RegisterView {
 	public function response() {
 		$this->session = new Session();
 
-        //TODO: RegisterController.
 		$this->registerController = new RegisterController();
 		$this->registerController->handleUserRequest();
 		$message = $this->registerController->getMessage();
@@ -62,8 +61,7 @@ class RegisterView {
 	}
 	
 	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
-	private function getRequestUserName() {
-		$providedUsername = $this->registerController->getUsername();
-		return $providedUsername;
+	public function getRequestUserName() {
+		return $this->registerController->getUsername();
 	}
 }
