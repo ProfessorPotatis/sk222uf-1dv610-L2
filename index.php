@@ -3,7 +3,9 @@
 require_once('model/Database.php');
 require_once('model/Session.php');
 require_once('model/Server.php');
+require_once('model/Request.php');
 require_once('model/Get.php');
+require_once('model/Post.php');
 require_once('model/Cookie.php');
 
 require_once('view/LoginView.php');
