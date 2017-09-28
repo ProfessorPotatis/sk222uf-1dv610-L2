@@ -9,6 +9,7 @@ class RegisterView {
 	private static $register = 'RegisterView::Register';
 
 	private $session;
+	private $get;
     private $registerController;
     
     private $registerUserName;
@@ -18,16 +19,19 @@ class RegisterView {
 	 *
 	 * Should be called after a register attempt has been determined
 	 *
-	 * @return  void BUT writes to standard output and cookies!
+	 * @return  void BUT writes to standard output.
 	 */
 	public function response() {
 		$this->session = new Session();
+		$this->get = new Get();
 
 		$this->registerController = new RegisterController();
 		$this->registerController->handleUserRequest();
 		$message = $this->registerController->getMessage();
 
-        if (isset($_GET['register'])) {
+		$registerIsSet = $this->get->getVariableIsSet('register');
+
+        if ($registerIsSet) {
 			$response = $this->generateRegisterFormHTML($message);
         }
         
@@ -60,8 +64,7 @@ class RegisterView {
 	';
 	}
 	
-	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
-	public function getRequestUserName() {
+	private function getRequestUserName() {
 		return $this->registerController->getUsername();
 	}
 }

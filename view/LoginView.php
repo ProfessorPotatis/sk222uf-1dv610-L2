@@ -1,5 +1,4 @@
 <?php
-//session_start();
 
 class LoginView {
 	private static $login = 'LoginView::Login';
@@ -15,6 +14,7 @@ class LoginView {
 	private $session;
 	private $loginController;
 	private $registerController;
+	private $cookie;
 
 	/**
 	 * Create HTTP response
@@ -32,9 +32,13 @@ class LoginView {
 
 		$this->registerController = new RegisterController();
 
+		$this->cookie = new Cookie();
+		$cookiePasswordIsSet = $this->cookie->cookieIsSet(self::$cookiePassword);
+		$cookiePassword = $this->cookie->getCookieVariable(self::$cookiePassword);
+
 		if ($this->session->isLoggedIn()) {
 			$response = $this->generateLogoutButtonHTML($message);
-		} else if (isset($_COOKIE[self::$cookiePassword]) && !empty($_COOKIE[self::$cookiePassword])) {
+		} else if ($cookiePasswordIsSet && !empty($cookiePassword)) {
 			$response = $this->generateLogoutButtonHTML($message);
 		} else {
 			$response = $this->generateLoginFormHTML($message);
@@ -86,14 +90,16 @@ class LoginView {
 		';
 	}
 	
-	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
 	private function getRequestUserName() {
 		$username;
 
-		if (!empty($this->loginController->getUsername())) {
-			$username = $this->loginController->getUsername();
-		} else if (!empty($_SESSION['username'])) {
-			$username = $this->session->getSessionVariable('username');
+		$providedLoginUsername = $this->loginController->getUsername();
+		$sessionUsername = $this->session->getSessionVariable('username');
+
+		if (!empty($providedLoginUsername)) {
+			$username = $providedLoginUsername;
+		} else if (!empty($sessionUsername)) {
+			$username = $sessionUsername;
 			$this->session->unsetSessionVariable('username');
 		} else {
 			$username = '';
