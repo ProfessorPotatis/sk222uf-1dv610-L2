@@ -2,7 +2,6 @@
 
 class Session {
     private static $loggedIn = 'loggedIn';
-    private static $cookiePassword = 'LoginView::CookiePassword';
     
     public function __construct() {
         $this->startSession();
@@ -39,7 +38,7 @@ class Session {
     }
 
     public function isLoggedIn() {
-        if (isset($_SESSION[self::$loggedIn]) && $this->getSessionVariable(self::$loggedIn)) {
+        if ($this->sessionVariableIsSet(self::$loggedIn) && $this->getSessionVariable(self::$loggedIn)) {
             return true;
         } else {
             return false;

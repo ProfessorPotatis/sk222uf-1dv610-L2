@@ -6,10 +6,16 @@ class Server {
     }
 
     public function getServerVariable($serverVariable) {
-        return $_SERVER[$serverVariable];
+        if ($this->serverVariableIsSet($serverVariable)) {
+            return $_SERVER[$serverVariable];
+        }
     }
 
     public function unsetServerVariable($serverVariable) {
         unset($_SERVER[$serverVariable]);
+    }
+
+    public function serverVariableIsSet($serverVariable) {
+        return isset($_SERVER[$serverVariable]);
     }
 }

@@ -39,10 +39,10 @@ class Database {
     public function addUser($newUsername, $newPassword) {
         $this->connectToDatabase();
 
-        $encryptedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $hashPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
         $sql = "INSERT INTO Users (username, password)
-        VALUES ('" . $newUsername . "', '" . $encryptedPassword . "')";
+        VALUES ('" . $newUsername . "', '" . $hashPassword . "')";
         
         if (mysqli_query($this->connection, $sql)) {
             //echo 'New record created successfully';
@@ -67,7 +67,7 @@ class Database {
             
             /* fetch value */
             while (mysqli_stmt_fetch($stmt)) {
-                $this->usernameExist = $this->verifyUsername($username, $dbUsername);
+                $this->usernameExist = $this->compareUsername($username, $dbUsername);
             }
             
             /* close statement */
@@ -78,7 +78,7 @@ class Database {
         return $this->usernameExist;
     }
 
-    private function verifyUsername($username, $dbUsername) {
+    private function compareUsername($username, $dbUsername) {
         if ($username == $dbUsername) {
             return true;
         } else {
@@ -122,9 +122,9 @@ class Database {
     public function saveUserCookie($username, $cookiePassword) {
         $this->connectToDatabase();
         
-        $encryptedCookiePassword = password_hash($cookiePassword, PASSWORD_DEFAULT);
+        $hashedCookiePassword = password_hash($cookiePassword, PASSWORD_DEFAULT);
 
-        $sql = "UPDATE Users SET cookie='" . $encryptedCookiePassword . "' WHERE BINARY username='" . $username . "'";
+        $sql = "UPDATE Users SET cookie='" . $hashedCookiePassword . "' WHERE BINARY username='" . $username . "'";
                 
         if (mysqli_query($this->connection, $sql)) {
             //echo 'New cookie record created successfully';
@@ -149,7 +149,7 @@ class Database {
             
             /* fetch value */
             while (mysqli_stmt_fetch($stmt)) {
-                $this->cookieIsValid = $this->verifyTheCookie($inputCookie, $dbCookiePassword);
+                $this->cookieIsValid = $this->compareCookie($inputCookie, $dbCookiePassword);
             }
             
             /* close statement */
@@ -160,7 +160,7 @@ class Database {
         return $this->cookieIsValid;
     }
 
-    private function verifyTheCookie($inputCookie, $dbCookiePassword) {
+    private function compareCookie($inputCookie, $dbCookiePassword) {
         if (password_verify($inputCookie, $dbCookiePassword)) {
             return true;
         } else {
