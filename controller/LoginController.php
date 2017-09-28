@@ -10,34 +10,53 @@ class LoginController {
     private static $cookieName = 'LoginView::CookieName';
 	private static $cookiePassword = 'LoginView::CookiePassword';
 
-    private $message = '';
     private $db;
-    private $isAuthenticated = false;
     private $session;
+    private $cookie;
+    private $post;
+    private $request;
+    private $server;
+
+    private $message = '';
     private $username;
+    private $isAuthenticated = false;
     
     public function __construct() {
-        // ON PRODUCTION SERVER -> REMOVE SK222UF-1DV610-L2.
         require($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
 
         $this->db = new Database($db_host, $db_user, $db_password, $db_name);
         $this->session = new Session();
+        $this->cookie = new Cookie();
+        $this->post = new Post();
+        $this->request = new Request();
+        $this->server = new Server();
+    }
+
+    public function getMessage() {
+        return $this->message;
+    }
+
+    public function getUsername() {
+        return $this->username;
     }
 
     public function handleUserRequest() {
         if ($_POST) {
             $this->handleLoginRequest();
             $this->redirectToSelf();
-        } else if (isset($_SESSION['message'])) {
+        } else if ($this->session->sessionVariableIsSet('message')) {
             $this->message = $this->session->getSessionVariable('message');
             $this->session->unsetSessionVariable('message');
 
-            if (isset($_SESSION['username'])) {
+            if ($this->session->sessionVariableIsSet('username')) {
                 $this->username = $this->session->getSessionVariable('username');
                 $this->session->unsetSessionVariable('username');
             }
-        } else if (isset($_COOKIE[self::$cookiePassword]) && !$this->session->isLoggedIn()) {
-            if ($this->db->verifyCookie($_COOKIE[self::$cookieName], $_COOKIE[self::$cookiePassword])) {
+        } else if ($this->cookie->cookieIsSet(self::$cookiePassword) && $this->session->isLoggedIn() == false) {
+            $cookieUsername = $this->cookie->getCookieVariable(self::$cookieName);
+            $cookiePw = $this->cookie->getCookieVariable(self::$cookiePassword);
+
+            if ($this->db->verifyCookie($cookieUsername, $cookiePw)) {
                 $this->session->setSessionVariable('message', 'Welcome back with cookie');
                 $this->session->setSessionVariable('loggedIn', true);
                 $this->message = $this->session->getSessionVariable('message');
@@ -54,10 +73,11 @@ class LoginController {
     }
 
     private function handleLoginRequest() {
-        if (isset($_POST[self::$logout])) {
+        if ($this->post->postVariableIsSet(self::$logout)) {
             $this->logout();
-        } else if (isset($_POST[self::$login]) && $this->session->isLoggedIn() == false) {
-            $this->session->setSessionVariable('username', $_POST[self::$providedUsername]);
+        } else if ($this->post->postVariableIsSet(self::$login) && $this->session->isLoggedIn() == false) {
+            $postedUsername = $this->post->getPostVariable(self::$providedUsername);
+            $this->session->setSessionVariable('username', $postedUsername);
             $this->username = $this->session->getSessionVariable('username');
             $this->validateInputFields();
         } else {
@@ -65,19 +85,14 @@ class LoginController {
         }
     }
 
-    public function getMessage() {
-        return $this->message;
-    }
-
-    public function getUsername() {
-        return $this->username;
-    }
-
     private function validateInputFields() {
-        if ($_REQUEST[self::$providedUsername] == '') {
+        $postedUsername = $this->request->getRequestVariable(self::$providedUsername);
+        $postedPassword = $this->request->getRequestVariable(self::$providedPassword);
+
+        if ($postedUsername == '') {
             $this->session->setSessionVariable('message', 'Username is missing');
-        } else if ($_REQUEST[self::$providedPassword] == '') {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$providedUsername]);
+        } else if ($postedPassword == '') {
+            $this->session->setSessionVariable('username', $postedUsername);
             $this->session->setSessionVariable('message', 'Password is missing');
         } else {
             $this->authenticateUser();
@@ -85,19 +100,51 @@ class LoginController {
     }
 
     private function authenticateUser() {
-        $this->isAuthenticated = $this->db->authenticate($_REQUEST[self::$providedUsername], $_REQUEST[self::$providedPassword]);
+        $postedUsername = $this->request->getRequestVariable(self::$providedUsername);
+        $postedPassword = $this->request->getRequestVariable(self::$providedPassword);
+
+        $this->isAuthenticated = $this->db->authenticate($postedUsername, $postedPassword);
 
         if ($this->isAuthenticated) {
+            $httpUserAgent = $this->server->getServerVariable('HTTP_USER_AGENT');
+
             $this->session->regenerateSessionId();
-            $this->session->setSessionVariable('user_agent', $_SERVER['HTTP_USER_AGENT']);
+            $this->session->setSessionVariable('user_agent', $httpUserAgent);
             $this->session->setSessionVariable('loggedIn', true);
             $this->session->setSessionVariable('message', 'Welcome');
             
             $this->keepLoggedIn();
         } else {
-            $this->session->setSessionVariable('username', $_REQUEST[self::$providedUsername]);
+            $this->session->setSessionVariable('username', $postedUsername);
             $this->session->setSessionVariable('message', 'Wrong name or password');
         }
+    }
+
+    private function keepLoggedIn() {
+        if ($this->post->postVariableIsSet(self::$keep)) {
+            $this->session->setSessionVariable('message', 'Welcome and you will be remembered');
+            $this->setCookies();
+        }
+    }
+
+    private function setCookies() {
+        $postedUsername = $this->request->getRequestVariable(self::$providedUsername);
+        $randomStr = uniqid();
+
+        setcookie(self::$cookieName, $postedUsername, time() + (86400 * 30), '/');
+        setcookie(self::$cookiePassword, $randomStr, time() + (86400 * 30), '/');
+
+        $this->saveCookiesToDatabase($randomStr);
+    }
+
+    private function saveCookiesToDatabase($randomStr) {
+        $postedUsername = $this->request->getRequestVariable(self::$providedUsername);
+
+        $this->db->saveUserCookie($postedUsername, $randomStr);
+    }
+
+    private function redirectToSelf() {
+        header('Location: ' . $_SERVER['PHP_SELF']);
     }
 
     private function logout() {
@@ -108,29 +155,6 @@ class LoginController {
         } else {
             $this->message = '';
         }
-    }
-
-    private function redirectToSelf() {
-        header('Location: ' . $_SERVER['PHP_SELF']);
-    }
-
-    private function keepLoggedIn() {
-        if (isset($_POST[self::$keep])) {
-            $this->session->setSessionVariable('message', 'Welcome and you will be remembered');
-            $this->setCookies();
-        }
-    }
-
-    private function setCookies() {
-        $randomStr = uniqid();
-        setcookie(self::$cookieName, $_REQUEST[self::$providedUsername], time() + (86400 * 30), '/');
-        setcookie(self::$cookiePassword, $randomStr, time() + (86400 * 30), '/');
-
-        $this->saveCookiesToDatabase($randomStr);
-    }
-
-    private function saveCookiesToDatabase($randomStr) {
-        $this->db->saveUserCookie($_REQUEST[self::$providedUsername], $randomStr);
     }
 
     private function clearCookies() {
