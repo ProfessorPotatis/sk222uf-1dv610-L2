@@ -2,6 +2,9 @@
 //INCLUDE THE FILES NEEDED...
 require_once('model/Database.php');
 require_once('model/Session.php');
+require_once('model/Server.php');
+require_once('model/Get.php');
+require_once('model/Cookie.php');
 
 require_once('view/LoginView.php');
 require_once('view/RegisterView.php');

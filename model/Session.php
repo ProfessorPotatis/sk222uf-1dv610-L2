@@ -25,11 +25,17 @@ class Session {
     }
 
     public function getSessionVariable($sessionVariable) {
-        return $_SESSION[$sessionVariable];
+        if ($this->sessionVariableIsSet($sessionVariable)) {
+            return $_SESSION[$sessionVariable];
+        }
     }
 
     public function unsetSessionVariable($sessionVariable) {
         unset($_SESSION[$sessionVariable]);
+    }
+
+    public function sessionVariableIsSet($sessionVariable) {
+        return isset($_SESSION[$sessionVariable]);
     }
 
     public function isLoggedIn() {

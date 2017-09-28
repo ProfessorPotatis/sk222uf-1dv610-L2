@@ -7,6 +7,9 @@ class RouteController {
     private $registerView;
 
     private $session;
+    private $server;
+    private $get;
+    private $cookie;
 
     public function __construct() {
         $this->layoutView = new LayoutView();
@@ -15,11 +18,14 @@ class RouteController {
         $this->registerView = new RegisterView();
 
         $this->session = new Session();
+        $this->server = new Server();
+        $this->get = new Get();
+        $this->cookie = new Cookie();
     }
 
     public function route() {
         if ($this->session->isLoggedIn()) {
-            $isLoggedIn = $this->checkUserAgent();
+            $isLoggedIn = $this->notHijacked();
             $this->renderLoginPage($isLoggedIn);
         } else if ($this->userWantsToRegister()) {
             $isLoggedIn = false;
@@ -33,13 +39,19 @@ class RouteController {
         }
     }
 
-    private function checkUserAgent() {
+    private function notHijacked() {
         $stayLoggedIn;
-        if (!empty($_SESSION['user_agent']) && $this->session->getSessionVariable('user_agent') !== $_SERVER['HTTP_USER_AGENT']) {
+
+        $userAgentIsSet = $this->session->sessionVariableIsSet('user_agent');
+        $sessionUserAgent = $this->session->getSessionVariable('user_agent');
+        $serverUserAgent = $this->server->getServerVariable('HTTP_USER_AGENT');
+
+        if ($userAgentIsSet && $sessionUserAgent !== $serverUserAgent) {
             $stayLoggedIn = false;
         } else {
             $stayLoggedIn = true;
         }
+        
         return $stayLoggedIn;
     }
 
@@ -48,7 +60,7 @@ class RouteController {
     }
 
     private function userWantsToRegister() {
-        return isset($_GET['register']);
+        return $this->get->getVariableIsSet('register');
     }
 
     private function renderRegisterPage($isLoggedIn) {
@@ -56,6 +68,12 @@ class RouteController {
     }
 
     private function userHasCookies() {
-        return isset($_COOKIE['LoginView::CookiePassword']) && !empty($_COOKIE['LoginView::CookiePassword']);
+        $cookiePasswordIsSet = $this->cookie->cookieIsSet('LoginView::CookiePassword');
+        $cookiePassword = $this->cookie->getCookieVariable('LoginView::CookiePassword');
+
+        if ($cookiePasswordIsSet && !empty($cookiePassword)) {
+            return true;
+        }
+        return false;
     }
 }
