@@ -2,7 +2,7 @@
 
 class Cookie {
     public function setCookieVariable($name, $value) {
-        $_COOKIE[$name] = $value;
+        setcookie($name, $value, time() + (86400 * 30), '/');
     }
 
     public function getCookieVariable($cookieVariable) {

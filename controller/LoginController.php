@@ -131,8 +131,8 @@ class LoginController {
         $postedUsername = $this->request->getRequestVariable(self::$providedUsername);
         $randomStr = uniqid();
 
-        setcookie(self::$cookieName, $postedUsername, time() + (86400 * 30), '/');
-        setcookie(self::$cookiePassword, $randomStr, time() + (86400 * 30), '/');
+        $this->cookie->setCookieVariable(self::$cookieName, $postedUsername);
+        $this->cookie->setCookieVariable(self::$cookiePassword, $randomStr);
 
         $this->saveCookiesToDatabase($randomStr);
     }
@@ -158,13 +158,19 @@ class LoginController {
     }
 
     private function clearCookies() {
-        if (isset($_COOKIE[self::$cookieName])) {
-            unset($_COOKIE[self::$cookieName]);
+        $userCookieIsSet = $this->cookie->cookieIsSet(self::$cookieName);
+        $userCookie = $this->cookie->getCookieVariable(self::$cookieName);
+
+        $passwordCookieIsSet = $this->cookie->cookieIsSet(self::$cookiePassword);
+        $passwordCookie = $this->cookie->getCookieVariable(self::$cookiePassword);
+
+        if ($userCookieIsSet) {
+            $this->cookie->unsetCookieVariable($userCookie);
             setcookie(self::$cookieName, '', time() - 3600, '/'); // empty value and old timestamp, to delete cookie
         }
 
-        if (isset($_COOKIE[self::$cookiePassword])) {
-            unset($_COOKIE[self::$cookiePassword]);
+        if ($passwordCookieIsSet) {
+            $this->cookie->unsetCookieVariable($passwordCookie);
             setcookie(self::$cookiePassword, '', time() - 3600, '/'); // empty value and old timestamp, to delete cookie
         }
     }
