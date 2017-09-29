@@ -8,7 +8,7 @@ class LoginController {
     private static $login = 'LoginView::Login';
     private static $keep = 'LoginView::KeepMeLoggedIn';
     private static $cookieName = 'LoginView::CookieName';
-	private static $cookiePassword = 'LoginView::CookiePassword';
+    private static $cookiePassword = 'LoginView::CookiePassword';
 
     private $db;
     private $session;
@@ -22,7 +22,7 @@ class LoginController {
     private $isAuthenticated = false;
     
     public function __construct() {
-        require($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
+        require($_SERVER['DOCUMENT_ROOT'] . '/model/DBConfig.php');
 
         $this->db = new Database($db_host, $db_user, $db_password, $db_name);
         $this->session = new Session();
