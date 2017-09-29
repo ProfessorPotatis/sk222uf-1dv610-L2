@@ -3,8 +3,8 @@
 class RegisterController {
 
     private static $registerName = 'RegisterView::UserName';
-	private static $registerPassword = 'RegisterView::Password';
-	private static $register = 'RegisterView::Register';
+    private static $registerPassword = 'RegisterView::Password';
+    private static $register = 'RegisterView::Register';
 
     private $db;
     private $session;
@@ -18,7 +18,7 @@ class RegisterController {
     private $message = '';
     
     public function __construct() {
-        require($_SERVER['DOCUMENT_ROOT'] . '/sk222uf-1dv610-L2/model/DBConfig.php');
+        require($_SERVER['DOCUMENT_ROOT'] . '/model/DBConfig.php');
 
         $this->db = new Database($db_host, $db_user, $db_password, $db_name);
         $this->session = new Session();
